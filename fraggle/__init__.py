@@ -132,12 +132,23 @@ Answer:"""
 
 
 async def ask_question_stream(question: str, vectorstore: FAISS):
-    """Ask a question and stream the answer."""
+    """Ask a question and stream the answer with sources."""
     llm_config = get_llm_config()
     retriever = vectorstore.as_retriever(search_kwargs={"k": K_CONTEXT_DOCS})
 
     # Get relevant documents
     docs = retriever.invoke(question)
+
+    # Extract sources from document metadata
+    import json
+    sources = []
+    for doc in docs:
+        title = doc.metadata.get("title", "Untitled")
+        url = doc.metadata.get("url", "")
+        sources.append([title, url])
+
+    # Send sources first
+    yield f"SOURCES::{json.dumps(sources)}"
 
     # Build context from documents
     context = "\n\n".join([doc.page_content for doc in docs])
@@ -152,8 +163,11 @@ Question: {question}
 
 Answer:"""
 
-    # Stream completion
+    # Send prompt messages
     messages = [{"role": "user", "content": prompt}]
+    yield f"PROMPT::{json.dumps(messages)}"
+
+    # Stream completion
     stream = await llm_completion(
         model=LLM_MODEL,
         provider=llm_config["provider"],
@@ -165,6 +179,9 @@ Answer:"""
     async for chunk in stream:
         if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
+
+    # Signal stream complete
+    yield "stream-complete"
 
 
 # Initialize vectorstore
@@ -199,18 +216,17 @@ async def api_ask(request: Dict[str, Any]):
     return {"answer": answer}
 
 
-@app.post("/api/stream")
-async def api_stream(request: Dict[str, Any]):
+@app.get("/api/stream")
+async def api_stream(q: str = ""):
     """Streaming question answering endpoint."""
-    question = request.get("question", "")
-    if not question:
+    if not q:
         return {"error": "No question provided"}
 
     if vectorstore is None:
         return {"error": "Index not loaded. Run 'fraggle index' first."}
 
     async def event_generator():
-        async for chunk in ask_question_stream(question, vectorstore):
+        async for chunk in ask_question_stream(q, vectorstore):
             yield {"data": chunk}
 
     return EventSourceResponse(event_generator())
@@ -252,84 +268,114 @@ def make_front_end(output: str = "frontend"):
     frontend_dir.mkdir(exist_ok=True)
 
     html_content = """<!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Fraggle Q&A</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        h1 { color: #333; }
-        #question {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover { background: #0056b3; }
-        #answer {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            min-height: 100px;
-        }
-        .loading { opacity: 0.6; }
-    </style>
+    <title>Fraggle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/tachyons/css/tachyons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
 </head>
-<body>
-    <h1>Ask a Question</h1>
-    <input type="text" id="question" placeholder="Enter your question...">
-    <button onclick="askQuestion()">Ask</button>
-    <div id="answer"></div>
+
+<body class="w-100 avenir black-80 bg-yellow">
+    <div id="app" class="mw6 center">
+        <form @submit="formSubmit" class="pa2 black-80">
+            <div class="measure">
+                <h1 class="f-subheadline-ns f1 lh-solid mb4 near-black">Fraggle</h1>
+                <label for="question" class="f4 db mb3">Your question:</label>
+                <input id="question" class="input-reset f4 ba b--black-20 pa2 mb1 db w-100 br2" type="text"
+                    v-model.lazy="question">
+                <input id="submit" class="dim mt3 pointer ph3 pv2 input-reset ba b--black br2 bg-transparent f4 mb2"
+                    type="submit" :value="button_text">
+                <p v-if="sources.length" class="mt2 georgia i mid-gray f5 mb0">Sources:
+                <ul>
+                    <li v-for="source in sources" class="georgia i mid-gray f5 lh-copy">
+                        <a v-if="source[1]" :href="source[1]" class="mid-gray dim">{{ source[0] }}</a>
+                        <span v-else>{{ source[0] }}</span>
+                    </li>
+                </ul>
+                <p class="mt1 georgia f4 lh-copy" v-text="answer"></p>
+                </p>
+                <p v-if="prompt_messages.length" class="mt2 georgia mid-gray f5 mb0">Prompt messages:
+                <p v-for="message in prompt_messages" class="georgia mid-gray f5 lh-copy">
+                    {{ message['content'] }}
+                </p>
+                </p>
+            </div>
+        </form>
+    </div>
 
     <script>
-        async function askQuestion() {
-            const question = document.getElementById('question').value;
-            const answerDiv = document.getElementById('answer');
+        var app = new Vue({
+            el: '#app',
+            data: {
+                question: '',
+                answer: '',
+                sources: [],
+                prompt_messages: [],
+                button_text: 'Tell me',
+                sseClient: null,
+            },
+            mounted() {
+                this.connectToSSE();
+            },
+            beforeDestroy() {
+                if (this.sseClient) {
+                    this.sseClient.close();
+                }
+            },
+            methods: {
+                formSubmit(e) {
+                    e.preventDefault();
+                    app.button_text = "Checking sources...";
+                    app.sources = [];
+                    app.prompt_messages = [];
+                    app.answer = "";
+                    streaming_api_url = "/api/stream?q=" + app.question;
+                    this.connectToSSE(streaming_api_url);
+                },
+                connectToSSE(streamURL) {
+                    this.sseClient = new EventSource(streamURL);
+                    console.log('SSE connection opened to ' + streamURL);
 
-            if (!question) return;
+                    this.sseClient.addEventListener('message', (event) => {
+                        // if the event starts with "SOURCES::" then it's a list of sources
+                        if (event.data.startsWith('SOURCES::')) {
+                            this.sources = JSON.parse(event.data.split('::')[1]);
+                            console.log('Sources updated');
+                            app.button_text = "Working out an answer...";
+                            return;
+                        }
+                        // if the event starts with "PROMPT::" then the prompt messages are included
+                        if (event.data.startsWith('PROMPT::')) {
+                            this.prompt_messages = JSON.parse(event.data.split('::')[1]);
+                            console.log('Prompt messages updated');
+                            return;
+                        }
+                        // if the event is "stream-complete", disconnect
+                        if (event.data === 'stream-complete') {
+                            console.log('Stream complete');
+                            this.sseClient.close();
+                            app.button_text = "Tell me";
+                            return;
+                        }
+                        this.answer += event.data;
+                    });
 
-            answerDiv.innerHTML = 'Thinking...';
-            answerDiv.classList.add('loading');
-
-            try {
-                const response = await fetch('/api/ask', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question })
-                });
-
-                const data = await response.json();
-                answerDiv.innerHTML = data.answer || data.error || 'No answer received';
-            } catch (error) {
-                answerDiv.innerHTML = 'Error: ' + error.message;
-            } finally {
-                answerDiv.classList.remove('loading');
-            }
-        }
-
-        document.getElementById('question').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') askQuestion();
+                    this.sseClient.addEventListener('error', (event) => {
+                        if (event.target.readyState === EventSource.CLOSED) {
+                            console.log('SSE connection closed');
+                        } else if (event.target.readyState === EventSource.CONNECTING) {
+                            console.log('SSE connection reconnecting');
+                        }
+                    });
+                },
+            },
         });
     </script>
 </body>
+
 </html>"""
 
     (frontend_dir / "index.html").write_text(html_content)

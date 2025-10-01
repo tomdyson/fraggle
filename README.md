@@ -173,6 +173,18 @@ uv sync
 uv run fraggle serve
 ```
 
+## Comparison with microllama
+
+Fraggle improves on microllama by:
+- Provider-agnostic: Use any LLM via any-llm
+- Modern dependencies: LangChain 0.3+
+- Better naming: Focus on RAG, not LLMs
+- Same simple API and deployment story
+
+## License
+
+MIT
+
 ## Publishing a New Version
 
 Fraggle uses GitHub Actions to automatically publish to PyPI when you push a version tag:
@@ -194,15 +206,3 @@ The GitHub Actions workflow will automatically build and publish to PyPI.
 - Repository: `fraggle`
 - Workflow: `publish.yml`
 - Environment: `pypi`
-
-## Comparison with microllama
-
-Fraggle improves on microllama by:
--  Provider-agnostic: Use any LLM via any-llm
--  Modern dependencies: LangChain 0.3+
--  Better naming: Focus on RAG, not LLMs
--  Same simple API and deployment story
-
-## License
-
-MIT
