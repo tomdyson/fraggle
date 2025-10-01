@@ -167,11 +167,33 @@ git clone https://github.com/tomdyson/fraggle.git
 cd fraggle
 
 # Install with uv
-uv pip install -e .
+uv sync
 
 # Run in development mode
-fraggle serve --reload
+uv run fraggle serve
 ```
+
+## Publishing a New Version
+
+Fraggle uses GitHub Actions to automatically publish to PyPI when you push a version tag:
+
+```bash
+# 1. Update the version in pyproject.toml
+# 2. Commit and tag the release
+git add pyproject.toml
+git commit -m "Bump version to 0.1.x"
+git tag v0.1.x
+git push && git push --tags
+```
+
+The GitHub Actions workflow will automatically build and publish to PyPI.
+
+**First-time setup:** Configure PyPI Trusted Publishing at https://pypi.org/manage/account/publishing/ with:
+- PyPI Project Name: `fraggle`
+- Owner: `tomdyson`
+- Repository: `fraggle`
+- Workflow: `publish.yml`
+- Environment: `pypi`
 
 ## Comparison with microllama
 
