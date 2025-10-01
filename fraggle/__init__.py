@@ -334,7 +334,7 @@ def make_front_end(output: str = "frontend"):
 
     (frontend_dir / "index.html").write_text(html_content)
     typer.echo(f"Frontend created at {frontend_dir}/index.html")
-    typer.echo("Mount it in your app with: app.mount('/frontend', StaticFiles(directory='frontend'), name='frontend')")
+    typer.echo("Run 'fraggle serve' to start the server with the frontend")
 
 
 @cli.command()
