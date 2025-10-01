@@ -163,11 +163,8 @@ Question: {question}
 
 Answer:"""
 
-    # Send prompt messages
-    messages = [{"role": "user", "content": prompt}]
-    yield f"PROMPT::{json.dumps(messages)}"
-
     # Stream completion
+    messages = [{"role": "user", "content": prompt}]
     stream = await llm_completion(
         model=LLM_MODEL,
         provider=llm_config["provider"],
@@ -296,11 +293,6 @@ def make_front_end(output: str = "frontend"):
                     </li>
                 </ul>
                 <p class="mt1 georgia f4 lh-copy" v-text="answer"></p>
-                </p>
-                <p v-if="prompt_messages.length" class="mt2 georgia mid-gray f5 mb0">Prompt messages:
-                <p v-for="message in prompt_messages" class="georgia mid-gray f5 lh-copy">
-                    {{ message['content'] }}
-                </p>
                 </p>
             </div>
         </form>

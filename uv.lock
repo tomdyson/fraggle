@@ -314,7 +314,7 @@ wheels = [
 
 [[package]]
 name = "fraggle"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "any-llm-sdk", extra = ["anthropic"] },
