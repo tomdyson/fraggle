@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Fraggle-specific
+faiss_index/
+source.json
+frontend/
+Dockerfile
+
+# Environment variables
+.env
+
+# Claude Code settings
+.claude/

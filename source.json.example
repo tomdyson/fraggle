@@ -1,0 +1,27 @@
+[
+  {
+    "content": "Fraggle is a simple RAG (Retrieval-Augmented Generation) API that helps you build question and answer interfaces to your own content in minutes. It uses modern LangChain, FAISS for vector search, and supports multiple LLM providers through any-llm.",
+    "title": "What is Fraggle?",
+    "url": "https://github.com/tomdyson/fraggle"
+  },
+  {
+    "content": "Fraggle supports both OpenAI and Anthropic models. You can configure the provider and model using environment variables: LLM_PROVIDER (openai or anthropic) and LLM_MODEL (e.g., gpt-4o-mini, claude-3-5-sonnet-20241022).",
+    "title": "Supported LLM Providers",
+    "category": "configuration"
+  },
+  {
+    "content": "To get started with Fraggle: 1) Create a source.json file with your content, 2) Set your API key (OPENAI_API_KEY or ANTHROPIC_API_KEY), 3) Run 'fraggle index' to create the search index, 4) Run 'fraggle serve' to start the API server, 5) Query your content using the /api/ask endpoint.",
+    "title": "Quick Start Guide",
+    "category": "getting-started"
+  },
+  {
+    "content": "Fraggle provides several CLI commands: 'fraggle serve' starts the API server, 'fraggle index' creates the search index from your source documents, 'fraggle make-front-end' generates a simple HTML interface, and 'fraggle make-dockerfile' creates a Dockerfile for deployment.",
+    "title": "CLI Commands",
+    "category": "cli"
+  },
+  {
+    "content": "You can deploy Fraggle using Docker, Fly.io, Google Cloud Run, or any platform that supports Python containers. Generate a Dockerfile with 'fraggle make-dockerfile', then build and deploy. For faster startup, create the index at build time by uncommenting the RUN fraggle index line in the Dockerfile.",
+    "title": "Deployment Options",
+    "category": "deployment"
+  }
+]
