@@ -1,6 +1,6 @@
 [project]
 name = "fraggle"
-version = "0.1.2"
+version = "0.1.3"
 description = "A simple RAG API - build a question and answer interface to your own content in minutes"
 readme = "README.md"
 requires-python = ">=3.12"

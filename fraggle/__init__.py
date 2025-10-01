@@ -376,6 +376,12 @@ def make_front_end(output: str = "frontend"):
 
 
 @cli.command()
+def rock():
+    """Dance your cares away!"""
+    typer.echo("Dance your cares away, worry's for another day")
+
+
+@cli.command()
 def make_dockerfile():
     """Generate a Dockerfile for deployment."""
     dockerfile_content = """FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
