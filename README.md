@@ -1,11 +1,10 @@
 # Fraggle
 
-A simple RAG (Retrieval-Augmented Generation) API - build a question and answer interface to your own content in minutes.
+The simplest RAG API for Python. Build a question and answer interface to your own content in minutes.
 
-Fraggle is the spiritual successor to [microllama](https://github.com/tomdyson/microllama), modernized with:
+Fraggle is the spiritual successor to my badly named [microllama](https://github.com/tomdyson/microllama), modernized with:
 - Provider-agnostic LLM support via [any-llm](https://github.com/mozilla-ai/any-llm)
 - Modern LangChain (0.3+)
-- Support for OpenAI and Anthropic models
 - Simple deployment and usage
 
 ## Installation
@@ -40,13 +39,13 @@ export OPENAI_API_KEY="your-key-here"
 export ANTHROPIC_API_KEY="your-key-here"
 ```
 
-3. **Create the search index**:
+3. **Create an index of embeddings**:
 
 ```bash
 fraggle index
 ```
 
-4. **Start the server**:
+4. **Start the API server**:
 
 ```bash
 fraggle serve
