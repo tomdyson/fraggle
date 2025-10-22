@@ -2,7 +2,16 @@
 
 The simplest RAG API for Python. Build a question and answer interface to your own content in minutes.
 
-Fraggle is the spiritual successor to my badly named [microllama](https://github.com/tomdyson/microllama), modernized with:
+```bash
+pip install fraggle
+fraggle index
+fraggle serve
+curl -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is Fraggle?"}'
+```
+
+Fraggle is the successor to my badly named [microllama](https://github.com/tomdyson/microllama) project, modernised with:
 - Provider-agnostic LLM support via [any-llm](https://github.com/mozilla-ai/any-llm)
 - Modern LangChain (0.3+)
 - Simple deployment and usage
