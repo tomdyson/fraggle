@@ -3,9 +3,8 @@
 The simplest RAG API for Python. Build a question and answer interface to your own content in minutes.
 
 ```bash
-pip install fraggle
-fraggle index
-fraggle serve
+uvx fraggle index
+uvx fraggle serve
 curl -X POST http://localhost:8000/api/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "What is Fraggle?"}'
