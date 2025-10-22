@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterator, List, Optional
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.docstore.document import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -17,7 +17,7 @@ import typer
 import uvicorn
 from any_llm import acompletion as llm_completion
 
-__version__ = "0.1.0"
+__version__ = "0.1.5"
 
 # Configuration from environment variables
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
